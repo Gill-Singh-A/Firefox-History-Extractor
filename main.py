@@ -55,6 +55,11 @@ if __name__ == "__main__":
         exit(0)
     if not arguments.write:
         arguments.write = f"{date.today()} {strftime('%H_%M_%S', localtime())}"
+    history = []
     for path, folders, files in os.walk(arguments.path):
         if history_file_name in files:
             history_file_path = f"{path}/{history_file_name}"
+            data = extractFirefoxHistory(history_file_path)
+            if data:
+                history.extend(data)
+    history = reversed(sorted(list(set(history)), key= lambda item: item[0]))
