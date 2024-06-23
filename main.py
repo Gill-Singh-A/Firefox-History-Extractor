@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-import os
+import os, sqlite3
 from pathlib import Path
 from datetime import date
 from optparse import OptionParser
@@ -15,6 +15,7 @@ status_color = {
     ' ': Fore.WHITE
 }
 
+query = "SELECT datetime(moz_historyvisits.visit_date/1000000,'unixepoch'), moz_places.url, moz_places.title FROM moz_places, moz_historyvisits;"
 history_file_name = "places.sqlite"
 folder_name = ".mozilla"
 default_path = Path.home() / folder_name
@@ -27,6 +28,22 @@ def get_arguments(*args):
     for arg in args:
         parser.add_option(arg[0], arg[1], dest=arg[2], help=arg[3])
     return parser.parse_args()[0]
+
+def extractFirefoxHistory(history_db):
+    '''
+    Return Data Format
+    [
+        (date time, url, title),
+    ]
+    '''
+    try:
+        db = sqlite3.connect(history_db)
+        cursor = db.cursor()
+        cursor.execute(query)
+        data = cursor.fetchall()
+        return data
+    except:
+        return False
 
 if __name__ == "__main__":
     arguments = get_arguments(('-p', "--path", "path", f"Path to Firefox Cache Folder (Default={default_path})"),
