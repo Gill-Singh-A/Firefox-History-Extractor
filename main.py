@@ -1,5 +1,6 @@
 #! /usr/bin/env python3
 
+import os
 from pathlib import Path
 from datetime import date
 from optparse import OptionParser
@@ -14,6 +15,7 @@ status_color = {
     ' ': Fore.WHITE
 }
 
+history_file_name = "places.sqlite"
 folder_name = ".mozilla"
 default_path = Path.home() / folder_name
 
@@ -31,5 +33,11 @@ if __name__ == "__main__":
                               ('-w', "--write", "write", "Write to File (Default=Current Date and Time)"))
     if not arguments.path:
         arguments.path = default_path
+    if not os.path.isdir(arguments.path):
+        display('-', f"No Directory as {Back.YELLOW}{arguments.path}{Back.RESET}")
+        exit(0)
     if not arguments.write:
         arguments.write = f"{date.today()} {strftime('%H_%M_%S', localtime())}"
+    for path, folders, files in os.walk(arguments.path):
+        if history_file_name in files:
+            history_file_path = f"{path}/{history_file_name}"
