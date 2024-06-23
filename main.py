@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-import os, sqlite3, xlsxwriter
+import os, sqlite3
 from pathlib import Path
 from datetime import date
 from optparse import OptionParser
@@ -47,14 +47,14 @@ def extractFirefoxHistory(history_db):
 
 if __name__ == "__main__":
     arguments = get_arguments(('-p', "--path", "path", f"Path to Firefox Cache Folder (Default={default_path})"),
-                              ('-w', "--write", "write", "Write to XLSX File (Default=Current Date and Time)"))
+                              ('-w', "--write", "write", "Write to TSV File (Default=Current Date and Time)"))
     if not arguments.path:
         arguments.path = default_path
     if not os.path.isdir(arguments.path):
         display('-', f"No Directory as {Back.YELLOW}{arguments.path}{Back.RESET}")
         exit(0)
     if not arguments.write:
-        arguments.write = f"{date.today()} {strftime('%H_%M_%S', localtime())}.xlsx"
+        arguments.write = f"{date.today()} {strftime('%H_%M_%S', localtime())}.tsv"
     history = []
     for path, folders, files in os.walk(arguments.path):
         if history_file_name in files:
@@ -65,10 +65,6 @@ if __name__ == "__main__":
     history = list(reversed(sorted(list(set(history)), key= lambda item: item[0])))
     display('+', f"Total URLs Extracted from History = {Back.MAGENTA}{len(history)}{Back.RESET}")
     display(':', f"Dumping to File = {Back.MAGENTA}{arguments.write}{Back.RESET}")
-    dump_file = xlsxwriter.Workbook(arguments.write)
-    history_sheet = dump_file.add_worksheet("HISTORY")
-    for index, (time, url, title) in enumerate(history):
-        history_sheet.write(index, 0, time)
-        history_sheet.write(index, 1, title)
-        history_sheet.write(index, 2, url)
-    dump_file.close()
+    with open(arguments.write, 'w') as file:
+        file.write(f"Time\tTitle\tURL\n")
+        file.write('\n'.join([f"{time}\t{title}\t{url}" for time, url, title in history]))
